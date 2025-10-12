@@ -4,11 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { useRegions, type Region } from '../hooks/useRegions';
 import { useRecordVisit, useSearchCreators, type Creator } from '../hooks/useContentCreator';
 import { CheckIcon } from './Pricing';
-import { FaInstagram, FaYoutube, FaTiktok, FaTimes, FaEnvelope, FaBars, FaUsers } from 'react-icons/fa';
+import { FaInstagram, FaYoutube, FaTiktok, FaTimes, FaEnvelope, FaBars, FaUsers, FaRocket } from 'react-icons/fa';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { TrainingPage } from './TrainingPage';
 import { FaGraduationCap } from 'react-icons/fa';
+import { WinningProductsPage } from './WinningProductsPage'; // <-- ADD THIS LINE
+
 // --- Type Definitions ---
 type NavLink = {
   name: string;
@@ -109,6 +111,7 @@ const Sidebar: FC<SidebarProps> = ({ activePage, onNavigate, isOpen, onToggle })
 const navLinks: NavLink[] = [
     { name: 'Tableau de bord', icon: <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg> },
     { name: 'Base de données', icon: <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" /></svg> },
+    { name: 'Produits Gagnants', icon: <FaRocket className="h-5 w-5" /> },
     { name: 'Formation', icon: <FaGraduationCap className="h-5 w-5" /> }, // The new link using the imported icon
     { name: 'Facturation', icon: <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" /></svg> },
 ];
@@ -901,6 +904,12 @@ const DashboardPage: FC = () => {
         return (
           <ProtectedContent setCurrentPage={setCurrentPage}>
             <DatabaseContent />
+          </ProtectedContent>
+        );
+     case 'Produits Gagnants': // <-- ADD THIS CASE BLOCK
+        return (
+          <ProtectedContent setCurrentPage={setCurrentPage}>
+            <WinningProductsPage />
           </ProtectedContent>
         );
      case 'Formation':
