@@ -13,15 +13,17 @@ const Loader: FC<{ text?: string }> = ({ text = "Chargement des produits..." }) 
 );
 
 // --- Product Card Component ---
-const ProductCard: FC<{ product: WinningProduct; onClick: () => void }> = ({ product, onClick }) => {
+const ProductCard: FC<{ product: WinningProduct }> = ({ product }) => {
     const formatPrice = (price: number | null) => {
         if (price === null) return 'N/A';
         return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD' }).format(price);
     };
 
     return (
-        <div
-            onClick={onClick}
+        <a
+            href={product.productUrl ?? '#'}
+            target="_blank"
+            rel="noopener noreferrer"
             className="group relative bg-gradient-to-br from-neutral-800/60 to-neutral-700/40 p-4 rounded-2xl border border-neutral-600/30 backdrop-blur-xl hover:border-[#f97316]/40 transition-all duration-300 cursor-pointer transform hover:-translate-y-1 flex flex-col"
         >
             <div className="relative w-full aspect-square rounded-lg overflow-hidden mb-4 bg-neutral-700">
@@ -35,7 +37,7 @@ const ProductCard: FC<{ product: WinningProduct; onClick: () => void }> = ({ pro
                     <span>{product.salesVolume} ventes</span>
                 </div>
             </div>
-        </div>
+        </a>
     );
 };
 
