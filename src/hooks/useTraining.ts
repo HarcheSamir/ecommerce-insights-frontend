@@ -1,3 +1,4 @@
+// FILE: ./src/hooks/useTraining.ts
 // src/hooks/useTraining.ts
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,11 +16,11 @@ export interface Video {
   id: string;
   title: string;
   description: string | null;
-  videoUrl: string; // Using the full URL
+  vimeoId: string; // This is correct
   duration: number | null;
   order: number;
   courseId: string;
-  progress: VideoProgress[]; 
+  progress: VideoProgress[];
 }
 
 export interface VideoCourse {
@@ -27,7 +28,7 @@ export interface VideoCourse {
   title: string;
   description: string | null;
   order: number;
-  videos: Video[]; 
+  videos: Video[];
   totalVideos?: number;
   completedVideos?: number;
 }
@@ -63,9 +64,12 @@ export const useUpdateVideoProgress = () => {
   return useMutation({
     mutationFn: ({ videoId, completed }: { videoId: string, completed: boolean }) =>
       apiClient.post(`/training/videos/${videoId}/progress`, { completed }),
-    onSuccess: (data, variables) => {
-      // Invalidate the query for the current course to refetch progress data
-      queryClient.invalidateQueries({ queryKey: ['course'] });
+
+    // --- THIS IS THE FIX ---
+    onSuccess: () => {
+      // Invalidate both queries to ensure all parts of the UI are updated.
+      queryClient.invalidateQueries({ queryKey: ['course'] });  // Refreshes the course detail page (lesson list)
+      queryClient.invalidateQueries({ queryKey: ['courses'] }); // Refreshes the course overview page (progress circles)
     },
   });
 };

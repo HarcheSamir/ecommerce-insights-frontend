@@ -1,3 +1,4 @@
+// FILE: ./src/pages/TrainingPage.tsx
 // src/pages/TrainingPage.tsx
 
 import React, { useState, useMemo } from 'react';
@@ -5,7 +6,7 @@ import type { FC } from 'react';
 import { useCourses, useCourse, useUpdateVideoProgress } from '../hooks/useTraining';
 import type { VideoCourse, Video } from '../hooks/useTraining';
 import { FaPlayCircle, FaChevronLeft, FaClock, FaGraduationCap, FaCheckCircle } from 'react-icons/fa';
-import CloudinaryPlayer from '../components/CloudinaryPlayer';
+import VimeoPlayer from '../components/VimeoPlayer'; // UPDATED: Changed import
 import ProgressCircle from '../components/ProgressCircle';
 
 // --- Reusable Loader Component ---
@@ -43,9 +44,10 @@ const CourseDisplay: FC<{ course: VideoCourse }> = ({ course }) => {
         <div className="lg:grid lg:grid-cols-3 lg:gap-8">
             <div className="lg:col-span-2">
                 <div className="aspect-video w-full bg-black rounded-lg overflow-hidden shadow-2xl shadow-black/30">
-                    <CloudinaryPlayer
+                    {/* --- UPDATED: Swapped CloudinaryPlayer for VimeoPlayer and changed the prop --- */}
+                    <VimeoPlayer
                         key={currentVideo.id}
-                        src={currentVideo.videoUrl}
+                        vimeoId={currentVideo.vimeoId}
                         onEnded={handleVideoEnded}
                     />
                 </div>
@@ -66,13 +68,13 @@ const CourseDisplay: FC<{ course: VideoCourse }> = ({ course }) => {
                                 <li key={video.id}>
                                     <button
                                         onClick={() => setCurrentVideo(video)}
-                                        className={`w-full text-left p-3 rounded-md transition-colors flex items-center gap-4 ${currentVideo.id === video.id
+                                        className={`w-full text-left p-3 rounded-md transition-colors flex items-center gap-4 ${currentVideo.id=== video.id
                                             ? 'bg-[#f97316] text-white'
                                             : 'hover:bg-neutral-700/50'
                                             }`}
                                     >
                                         <div className="flex-shrink-0">
-                                            {isCompleted ? <FaCheckCircle className="w-6 h-6 text-green-500" /> : <FaPlayCircle className={`w-6 h-6 ${currentVideo.id === video.id ? 'text-white' : 'text-[#f97316]'}`} />}
+                                            {isCompleted ? <FaCheckCircle className="w-6 h-6 text-green-500" /> : <FaPlayCircle className={`w-6h-6 ${currentVideo.id === video.id ? 'text-white' : 'text-[#f97316]'}`} />}
                                         </div>
                                         <div>
                                             <p className={`font-semibold leading-tight ${isCompleted ? 'line-through text-neutral-400' : 'text-white'}`}>{video.title}</p>
@@ -157,7 +159,7 @@ export const TrainingPage: FC = () => {
                                             <ProgressCircle progress={progress} />
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex-grow mt-4">
                                         <p className="text-neutral-400 text-sm leading-relaxed line-clamp-3">{course.description}</p>
                                     </div>

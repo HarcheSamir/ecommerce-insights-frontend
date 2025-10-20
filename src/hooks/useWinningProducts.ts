@@ -65,6 +65,7 @@ export const useWinningProducts = (filters: ProductFilters) => {
       const { data }: AxiosResponse<PaginatedProductsResponse> = await apiClient.get('/winning-products', {
         params: filters,
       });
+      console.log(data)
       return data;
     },
     placeholderData: (previousData) => previousData, // Keeps old data visible while new data loads
@@ -118,5 +119,34 @@ export const useFavoriteProduct = () => {
         onError: (error) => {
             console.error('Failed to favorite product:', error);
         }
+    });
+};
+
+
+export interface TrendDataPoint {
+  time: string;
+  formattedTime: string;
+  value: [number]; // The API returns the value in an array
+}
+
+// Define the shape of the full API response for trends
+interface TrendsResponse {
+  data: TrendDataPoint[];
+}
+
+/**
+ * Fetches Google Trends data for a single product.
+ * @param productId - The ID of the product.
+ */
+export const useProductTrends = (productId: string | null) => {
+    return useQuery({
+        queryKey: ['productTrends', productId],
+        queryFn: async () => {
+            if (!productId) return null; // Don't fetch if there's no ID
+            const { data }: AxiosResponse<TrendsResponse> = await apiClient.get(`/winning-products/${productId}/trends`);
+            return data.data;
+        },
+        enabled: !!productId, // Only run the query if productId is not null
+        staleTime: 1000 * 60 * 60, // Cache trend data for 1 hour
     });
 };
