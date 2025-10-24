@@ -1,21 +1,17 @@
+// src/pages/SignupPage.tsx
+
 import { useState, type FormEvent, type JSX } from 'react';
 import { useSignup } from '../hooks/useAuthMutations';
 import type { AxiosError } from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
-
-// SVG Icon for brand consistency
-const LogoIcon = () => (
-    <svg className="h-10 w-10 text-[#f97316]" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-        <path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
-    </svg>
-);
+import { FaArrowLeft, FaEnvelope, FaLock, FaUser, FaCheckCircle } from 'react-icons/fa';
 
 const SignupPage = (): JSX.Element => {
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const { mutate: signupUser, isPending, error } = useSignup();
+  const { mutate: signupUser, isPending } = useSignup();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,139 +19,101 @@ const SignupPage = (): JSX.Element => {
       { firstName, lastName, email, password },
       {
         onSuccess: () => {
-          toast.success('Compte créé avec succès ! Redirection vers la connexion...');
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 2000);
+          toast.success('Compte créé avec succès ! Redirection...');
+          setTimeout(() => { window.location.href = '/dashboard'; }, 2000);
         },
         onError: (err: AxiosError) => {
-          toast.error(  "Échec de l'inscription. Veuillez réessayer.");
+            const errorData = err.response?.data as { message?: string };
+            toast.error(errorData?.message || "Échec de l'inscription. Veuillez réessayer.");
         },
       }
     );
   };
 
+  const features = [
+    { title: "Recherche de Produits Tendances", description: "Accédez à plus de 15 000 produits avec les données Google Trends en temps réel" },
+    { title: "Formation Vidéo Complète", description: "Plus de 120 heures de cours sur la création et gestion de boutique Shopify" },
+    { title: "Hub Influenceurs", description: "Connectez-vous avec plus de 1M d'influenceurs pour booster vos ventes" },
+    { title: "Support Premium", description: "Assistance 7j/7 et communauté d'entrepreneurs pour vous accompagner" }
+  ];
+
   return (
-    <div className="flex min-h-screen flex-col justify-center bg-[#000000] px-6 py-12 lg:px-8 font-['Inter',_sans-serif]">
-     <Toaster
-        position="bottom-right"
-        reverseOrder={false}
-      />
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <a href="/home">
+    <>
+      <Toaster position="bottom-right" reverseOrder={false} toastOptions={{ style: { background: '#333', color: '#fff' } }}/>
+      <div className="relative min-h-screen flex items-center justify-center p-6 font-sans overflow-hidden" style={{ background: 'linear-gradient(135deg, #000000 0%, #030712 50%, #000000 100%)' }}>
+        <div className="absolute top-[-10rem] left-[-20rem] w-[40rem] h-[40rem] rounded-full animate-[float-A_15s_ease-in-out_infinite]" style={{ background: 'radial-gradient(circle, rgba(40, 58, 114, 0.2), transparent 60%)', filter: 'blur(128px)' }} />
+        <div className="absolute bottom-[-15rem] right-[-15rem] w-[40rem] h-[40rem] rounded-full animate-[float-B_20s_ease-in-out_infinite]" style={{ background: 'radial-gradient(circle, rgba(40, 58, 114, 0.15), transparent 70%)', filter: 'blur(128px)' }} />
 
-          <LogoIcon />
-
-          </a>
-        </div>
-        <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-white">
-          Créez votre compte
-        </h2>
-      </div>
-
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-[#1a1a1a] border border-[#374151] rounded-xl p-8 shadow-lg">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium leading-6 text-[#9ca3af]">
-                  Prénom
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    autoComplete="given-name"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    required
-                    className="block w-full rounded-lg border-0 bg-[#2a2a2a] py-2.5 px-4 text-white shadow-sm placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#f97316] sm:text-sm sm:leading-6"
-                  />
+        <div className="relative container mx-auto max-w-6xl w-full">
+            <a href="/home" className="absolute top-0 left-0 -translate-y-12 flex items-center gap-2 text-neutral-400 hover:text-white transition-colors animate-[fadeIn-up_1s_ease-out] opacity-0 [animation-fill-mode:forwards]">
+                <FaArrowLeft /><span>Retour à l'accueil</span>
+            </a>
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+                <div className="relative overflow-hidden border border-neutral-800 rounded-3xl opacity-0 animate-[fadeIn-up_1s_ease-out_0.2s] [animation-fill-mode:forwards]" style={{ background: 'rgba(255, 255, 255, 0.05)' }}>
+                    <div className="relative p-8 md:p-12" style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0) 50%, rgba(255, 255, 255, 0.05) 100%)' }}>
+                        <div className="text-center mb-8">
+                            <h2 className="text-lg font-medium text-neutral-300">LOGO & TITRE</h2>
+                            <h1 className="text-4xl font-bold text-white mt-4">Créez votre compte</h1>
+                        </div>
+                        <form className="space-y-6" onSubmit={handleSubmit}>
+                            <div className="grid sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-sm text-neutral-400 mb-2 block">Prénom</label>
+                                    <div className="relative">
+                                        <FaUser className="absolute top-1/2 left-4 -translate-y-1/2 text-neutral-500" />
+                                        <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} required className="w-full bg-[#1C1E22] border border-neutral-700 rounded-lg h-12 pl-11 pr-4 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-gray-400" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-sm text-neutral-400 mb-2 block">Nom</label>
+                                    <div className="relative">
+                                        <FaUser className="absolute top-1/2 left-4 -translate-y-1/2 text-neutral-500" />
+                                        <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} required className="w-full bg-[#1C1E22] border border-neutral-700 rounded-lg h-12 pl-11 pr-4 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-gray-400" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-sm text-neutral-400 mb-2 block">Adresse Email</label>
+                                <div className="relative">
+                                    <FaEnvelope className="absolute top-1/2 left-4 -translate-y-1/2 text-neutral-500" />
+                                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="lorem@ipsum.com" required className="w-full bg-[#1C1E22] border border-neutral-700 rounded-lg h-12 pl-11 pr-4 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-gray-400" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-sm text-neutral-400 mb-2 block">Mot de passe</label>
+                                <div className="relative">
+                                    <FaLock className="absolute top-1/2 left-4 -translate-y-1/2 text-neutral-500" />
+                                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Lorem ipsum" required className="w-full bg-[#1C1E22] border border-neutral-700 rounded-lg h-12 pl-11 pr-4 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-gray-400" />
+                                </div>
+                            </div>
+                            <button type="submit" disabled={isPending} className="w-full h-12 rounded-lg bg-gray-200 text-black font-semibold transition-colors hover:bg-gray-300 disabled:opacity-50 disabled:cursor-wait">
+                                {isPending ? 'Création en cours...' : 'Créer un compte'}
+                            </button>
+                        </form>
+                        <p className="text-center text-sm text-neutral-400 mt-6">
+                            Vous avez déjà un compte ? <a href="/login" className="font-semibold text-white hover:underline">Se connecter</a>
+                        </p>
+                    </div>
                 </div>
-              </div>
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium leading-6 text-[#9ca3af]">
-                  Nom de famille
-                </label>
-                <div className="mt-2">
-                  <input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    autoComplete="family-name"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required
-                    className="block w-full rounded-lg border-0 bg-[#2a2a2a] py-2.5 px-4 text-white shadow-sm placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#f97316] sm:text-sm sm:leading-6"
-                  />
+
+                <div className="hidden md:flex flex-col justify-center px-8">
+                    <h2 className="text-4xl font-bold text-white mb-8 opacity-0 animate-[fadeIn-up_1s_ease-out_0.4s] [animation-fill-mode:forwards]">Tout pour réussir dans le e-commerce</h2>
+                    <ul className="space-y-6">
+                        {features.map((feature, index) => (
+                            <li key={index} className="flex items-start gap-4 opacity-0 animate-[fadeIn-up_1s_ease-out] [animation-fill-mode:forwards]" style={{animationDelay: `${0.6 + index * 0.2}s`}}>
+                                <div className="flex-shrink-0 bg-[#1C1E22] border border-neutral-700 w-10 h-10 flex items-center justify-center rounded-full"><FaCheckCircle className="text-neutral-400" /></div>
+                                <div>
+                                    <h3 className="font-semibold text-white">{feature.title}</h3>
+                                    <p className="text-neutral-400">{feature.description}</p>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-              </div>
             </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-[#9ca3af]">
-                Adresse e-mail
-              </label>
-              <div className="mt-2">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="block w-full rounded-lg border-0 bg-[#2a2a2a] py-2.5 px-4 text-white shadow-sm placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#f97316] sm:text-sm sm:leading-6"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium leading-6 text-[#9ca3af]">
-                Mot de passe
-              </label>
-              <div className="mt-2">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="block w-full rounded-lg border-0 bg-[#2a2a2a] py-2.5 px-4 text-white shadow-sm placeholder:text-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#f97316] sm:text-sm sm:leading-6"
-                />
-              </div>
-            </div>
-
-            {error && (
-              <p className="text-sm text-red-500">
-                {"Échec de l'inscription. Veuillez réessayer."}
-              </p>
-            )}
-
-            <div>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="flex w-full justify-center rounded-md bg-[#f97316] px-3 py-2.5 text-sm font-semibold leading-6 text-white shadow-sm transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f97316] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isPending ? 'Création du compte...' : 'Créer un compte'}
-              </button>
-            </div>
-          </form>
         </div>
-
-        <p className="mt-10 text-center text-sm text-[#9ca3af]">
-          Vous avez déjà un compte ?{' '}
-          <a href="/login" className="font-semibold leading-6 text-[#f97316] hover:text-orange-400">
-            Se connecter
-          </a>
-        </p>
       </div>
-    </div>
+    </>
   );
 };
 
