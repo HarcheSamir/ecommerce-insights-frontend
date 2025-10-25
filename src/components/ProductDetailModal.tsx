@@ -24,7 +24,6 @@ const ProductDetailModal: FC<ProductDetailModalProps> = ({ product, show, onClos
     return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: product.currency ?? 'USD' }).format(price);
   };
   
-  // CORRECTED: Increased opacity and changed base color for better readability
   const glassCardStyle = {
     background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0) 50%, rgba(255, 255, 255, 0.05) 100%), #111317',
   };
@@ -53,24 +52,27 @@ const ProductDetailModal: FC<ProductDetailModalProps> = ({ product, show, onClos
               <div className="w-full aspect-square rounded-2xl overflow-hidden bg-[#1C1E22]">
                 <img src={product.imageUrl ?? ''} alt={product.title ?? 'Product Image'} className="w-full h-full object-cover" />
               </div>
-              <div className="border border-neutral-800 rounded-2xl p-4" style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%)'}}>
-                 <p className="text-neutral-500 text-sm mb-2">Informations Fournisseur</p>
-                 <div className="flex justify-between items-center">
-                    <span className="text-white font-semibold">Supplier Name</span>
-                    <span className="flex items-center gap-1.5 text-yellow-400"><FaStar/> 4.6</span>
-                 </div>
-                 <hr className="border-neutral-800 my-3"/>
-                 <div className="grid grid-cols-2 gap-4 text-sm">
-                     <div><p className="text-neutral-500">MOQ</p><p className="text-white font-semibold">100 unités</p></div>
-                     <div><p className="text-neutral-500">Livraison</p><p className="text-white font-semibold">15-20 jours</p></div>
-                 </div>
-              </div>
+
+              {/* THIS IS THE FIX: Using real data and removing fake data */}
+              {product.shopName && (
+                <div className="border border-neutral-800 rounded-2xl p-4" style={{background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%)'}}>
+                   <p className="text-neutral-500 text-sm mb-2">Vendu par</p>
+                   <div className="flex justify-between items-center">
+                      <span className="text-white font-semibold truncate pr-4">{product.shopName}</span>
+                      {product.shopEvaluationRate && (
+                        <span className="flex items-center gap-1.5 text-yellow-400 flex-shrink-0">
+                            <FaStar/> {product.shopEvaluationRate}
+                        </span>
+                      )}
+                   </div>
+                </div>
+              )}
             </div>
 
             {/* Right Column: Details & Chart */}
             <div className="flex flex-col space-y-6">
               <div>
-                <span className="inline-block my-2 text-xs px-3 py-1 rounded-full bg-[#1C1E22] border border-neutral-700 text-neutral-300 self-start">{product.categoryName || "Catégorie"}</span>
+                <span className="inline-block my-2 text-xs px-3 py-1 rounded-full bg-[#1C1E22] border border-neutral-700 text-neutral-300 self-start">{product.firstLevelCategoryName || "Catégorie"}</span>
                 <h2 className="text-3xl font-bold text-white mt-2">{product.title}</h2>
               </div>
               
