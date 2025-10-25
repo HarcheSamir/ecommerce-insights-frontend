@@ -17,6 +17,10 @@ export interface WinningProduct {
   categoryName: string | null;
   firstLevelCategoryName: string | null;
   historicalData: { date: string; sales: number }[] | null;
+  googleTrendKeyword: string | null;
+  // THIS IS THE FIX
+  shopName: string | null;
+  shopEvaluationRate: string | null;
 }
 
 // For the main list, which includes pagination meta
@@ -65,7 +69,6 @@ export const useWinningProducts = (filters: ProductFilters) => {
       const { data }: AxiosResponse<PaginatedProductsResponse> = await apiClient.get('/winning-products', {
         params: filters,
       });
-      console.log(data)
       return data;
     },
     placeholderData: (previousData) => previousData, // Keeps old data visible while new data loads
@@ -111,10 +114,7 @@ export const useFavoriteProduct = () => {
     return useMutation({
         mutationFn: (productId: string) => apiClient.post(`/winning-products/${productId}/favorite`),
         onSuccess: () => {
-            // Can optionally invalidate queries related to user's favorites here
-            // For now, a success toast or console log is sufficient.
             console.log('Product favorited!');
-            // Consider using a toast notification for better UX
         },
         onError: (error) => {
             console.error('Failed to favorite product:', error);
@@ -126,10 +126,9 @@ export const useFavoriteProduct = () => {
 export interface TrendDataPoint {
   time: string;
   formattedTime: string;
-  value: [number]; // The API returns the value in an array
+  value: [number];
 }
 
-// Define the shape of the full API response for trends
 interface TrendsResponse {
   data: TrendDataPoint[];
 }
@@ -142,11 +141,11 @@ export const useProductTrends = (productId: string | null) => {
     return useQuery({
         queryKey: ['productTrends', productId],
         queryFn: async () => {
-            if (!productId) return null; // Don't fetch if there's no ID
+            if (!productId) return null;
             const { data }: AxiosResponse<TrendsResponse> = await apiClient.get(`/winning-products/${productId}/trends`);
             return data.data;
         },
-        enabled: !!productId, // Only run the query if productId is not null
-        staleTime: 1000 * 60 * 60, // Cache trend data for 1 hour
+        enabled: !!productId,
+        staleTime: 1000 * 60 * 60,
     });
 };

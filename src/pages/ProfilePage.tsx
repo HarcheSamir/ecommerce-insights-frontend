@@ -9,18 +9,32 @@ import { WinningProductsPage } from './WinningProductsPage';
 import { DatabasePage as InfluencersPage } from './SearchPage';
 import ProductDetailModal from '../components/ProductDetailModal';
 
+import { useDashboardStats } from '../hooks/useDashboardStats';
+import { useNotifications } from '../hooks/useNotifications';
+
 import {
-  FaTachometerAlt, FaChartLine, FaVideo, FaUsers, FaCog, FaShieldAlt, FaSignOutAlt, FaGlobe, FaChevronRight, FaStar, FaSearch, FaBars
+  FaTachometerAlt, FaChartLine, FaVideo, FaUsers, FaCog, FaShieldAlt, FaSignOutAlt, FaGlobe, FaChevronRight, FaStar, FaSearch, FaBars, FaBell
 } from 'react-icons/fa';
 
 // --- Type Definitions ---
 type NavLink = { name: string; icon: React.ReactNode; pageKey: string };
 
-const activityData = [
-    { icon: <FaChartLine />, title: "Nouveau produit tendance détecté", description: "Les écouteurs sans fil affichent une croissance de 45% sur le marché américain", time: "Il y a 2 heures" },
-    { icon: <FaVideo />, title: "Nouveau cours ajouté", description: "Stratégies Marketing Avancées pour Shopify maintenant disponible", time: "Il y a 5 heures" },
-    { icon: <FaUsers />, title: "Correspondance d'influenceur trouvée", description: "3 nouveaux influenceurs correspondent à votre catégorie de produits", time: "Il y a 1 jours" },
-];
+// --- HELPER: Time Ago Function ---
+const timeAgo = (date: string) => {
+    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return `Il y a ${Math.floor(interval)} ans`;
+    interval = seconds / 2592000;
+    if (interval > 1) return `Il y a ${Math.floor(interval)} mois`;
+    interval = seconds / 86400;
+    if (interval > 1) return `Il y a ${Math.floor(interval)} jours`;
+    interval = seconds / 3600;
+    if (interval > 1) return `Il y a ${Math.floor(interval)} heures`;
+    interval = seconds / 60;
+    if (interval > 1) return `Il y a ${Math.floor(interval)} minutes`;
+    return `Il y a quelques secondes`;
+};
+
 
 // --- Animation Hooks & Components ---
 const useInView = (options?: IntersectionObserverInit) => {
@@ -70,17 +84,24 @@ const AnimatedNumber: FC<{ value: number }> = ({ value }) => {
             let start = 0;
             const end = value;
             if (start === end) return;
-            const duration = 1500;
-            const incrementTime = Math.max(1, Math.floor(duration / end));
+            
+            // +++ THIS IS THE FIX +++
+            const duration = 1500; // Animation duration in milliseconds
+            const frameDuration = 1000 / 60; // 60 frames per second
+            const totalFrames = Math.round(duration / frameDuration);
+            const increment = Math.max(1, Math.ceil(end / totalFrames)); // Calculate step size
+
             const timer = setInterval(() => {
-                start += 1;
+                start += increment;
                 if (start >= end) {
-                    setDisplayValue(end);
+                    setDisplayValue(end); // Ensure it ends on the exact value
                     clearInterval(timer);
                 } else {
                     setDisplayValue(start);
                 }
-            }, incrementTime);
+            }, frameDuration);
+            // +++ END OF FIX +++
+
             return () => clearInterval(timer);
         }
     }, [isInView, value]);
@@ -91,7 +112,7 @@ const AnimatedNumber: FC<{ value: number }> = ({ value }) => {
 // --- Reusable Glass Card Component ---
 const GlassCard: FC<{ children: React.ReactNode; className?: string; padding?: string }> = ({ children, className = '', padding = 'p-6' }) => (
     <div className={`relative overflow-hidden border border-neutral-800 rounded-3xl transition-all duration-300 hover:border-neutral-700 hover:-translate-y-1 ${className}`} style={{ background: 'rgba(255, 255, 255, 0.05)' }}>
-        <div className={`relative ${padding}`} style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0) 50%, rgba(255, 255, 255, 0.05) 100%)' }}>
+        <div className={`relative ${padding}`} style={{ background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0) 50%,rgba(255, 255, 255, 0.05) 100%)' }}>
             {children}
         </div>
     </div>
@@ -102,15 +123,19 @@ const GlassCard: FC<{ children: React.ReactNode; className?: string; padding?: s
 const DashboardContent: FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
     const { data: userProfile } = useUserProfile();
     const { data: productsResponse, isLoading: productsLoading } = useWinningProducts({ page: 1, limit: 4 });
-    const products = productsResponse?.data || [];
     const [selectedProduct, setSelectedProduct] = useState<WinningProduct | null>(null);
 
+    const { data: statsData, isLoading: statsLoading } = useDashboardStats();
+    const { data: notifications, isLoading: notificationsLoading } = useNotifications();
+
+    // +++ THIS IS THE FIX +++
     const statCards = [
-        { icon: <FaChartLine />, value: userProfile?.totalVisitsCount || 0, label: "Produits tendances", change: "+12%" },
-        { icon: <FaVideo />, value: 52, label: "Cours disponibles", change: "+8%", isSoon: true },
-        { icon: <FaUsers />, value: userProfile?.totalSearchCount || 0, label: "Influenceurs actifs", change: "+24%" },
-        { icon: <FaGlobe />, value: 152, label: "Pays couverts", change: "+5%", isSoon: true },
+        { icon: <FaChartLine />, value: statsData?.totalWinningProducts, label: "Produits tendances" },
+        { icon: <FaVideo />, value: statsData?.totalCourses, label: "Cours disponibles" },
+        { icon: <FaUsers />, value: statsData?.totalInfluencers, label: "Influenceurs actifs" },
+        { icon: <FaGlobe />, value: statsData?.countriesCovered, label: "Pays couverts" },
     ];
+    // +++ END OF FIX +++
 
     return (
         <>
@@ -124,8 +149,12 @@ const DashboardContent: FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
                     {statCards.map((stat, i) => (
                         <AnimatedSection key={i} delay={`${i * 100}ms`}>
                             <GlassCard padding="p-5">
-                                <div className="flex justify-between items-start"><div className="bg-[#1C1E22] border border-neutral-700 w-10 h-10 flex items-center justify-center rounded-xl text-neutral-400">{stat.icon}</div><span className="flex items-center gap-1 text-sm text-green-400"><FaChartLine className="transform rotate-45" /> {stat.change}</span></div>
-                                <p className="text-4xl font-bold text-white mt-4">{stat.isSoon ? '(bientôt)' : <AnimatedNumber value={stat.value} />}</p>
+                                <div className="flex justify-between items-start">
+                                    <div className="bg-[#1C1E22] border border-neutral-700 w-10 h-10 flex items-center justify-center rounded-xl text-neutral-400">{stat.icon}</div>
+                                </div>
+                                <p className="text-4xl font-bold text-white mt-4">
+                                    { (statsLoading || typeof stat.value === 'undefined') ? '...' : <AnimatedNumber value={stat.value} /> }
+                                </p>
                                 <p className="text-neutral-400 text-sm mt-1">{stat.label}</p>
                             </GlassCard>
                         </AnimatedSection>
@@ -135,20 +164,30 @@ const DashboardContent: FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
                 <AnimatedSection>
                     <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold text-white">Produits du Jour</h2><button onClick={() => onNavigate('Produits tendances')} className="px-4 py-2 text-sm rounded-lg bg-[#1C1E22] border border-neutral-700 text-white font-semibold transition-colors hover:bg-neutral-800">Voir tout les produits</button></div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {(productsLoading ? Array(4).fill({}) : products).map((product: Partial<WinningProduct>, i) => (
+                        {(productsLoading ? Array(4).fill({}) : productsResponse?.data || []).map((product: Partial<WinningProduct>, i) => (
                              <GlassCard key={product.id || i} padding="p-0" className={product.id ? "cursor-pointer" : "cursor-default"}>
                                 <div onClick={() => product.id && setSelectedProduct(product as WinningProduct)}>
-                                    <div className="w-full h-40 bg-[#1C1E22] rounded-t-3xl overflow-hidden">{product.imageUrl && <img src={product.imageUrl} alt={product.title || 'Product'} className="w-full h-full object-cover" />}</div>
+                                    <div className="w-full h-40 bg-[#1C1E22] rounded-t-3xl overflow-hidden">{product.imageUrl ? <img src={product.imageUrl} alt={product.title || 'Product'} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-neutral-800 animate-pulse"></div>}</div>
                                     <div className="p-4 space-y-3">
-                                        <h3 className="font-bold text-white truncate">{product.title || "Chargement..."}</h3>
+                                        <h3 className="font-bold text-white truncate h-5">{product.title || "Chargement..."}</h3>
                                         <span className="inline-block text-xs px-3 py-1 rounded-full bg-[#1C1E22] border border-neutral-700 text-neutral-300">{product.categoryName || "Catégorie"}</span>
-                                        
-                                        {/* THIS IS THE FIX: Using salesVolume and "ventes" label */}
                                         <p className="text-sm text-neutral-400 flex items-center gap-2"><FaChartLine/> {product.salesVolume?.toLocaleString('fr-FR') || 0} ventes/mois</p>
-                                        
                                         <hr className="border-neutral-800" />
-                                        <div className="text-sm"><p className="text-neutral-500 mb-1">Informations Fournisseur</p><div className="flex justify-between items-center"><span className="text-neutral-300">Supplier Name</span><span className="flex items-center gap-1 text-yellow-400"><FaStar/> 4.6</span></div></div>
-                                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm"><div><p className="text-neutral-500">MOQ</p><p className="text-neutral-300">100 unités</p></div><div><p className="text-neutral-500">Livraison</p><p className="text-neutral-300">15-20 jours</p></div></div>
+
+                                        {product.shopName && (
+                                            <div className="text-sm">
+                                                <p className="text-neutral-500 mb-1">Vendu par</p>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-neutral-300 truncate pr-2">{product.shopName}</span>
+                                                    {product.shopEvaluationRate && (
+                                                        <span className="flex items-center gap-1 text-yellow-400 flex-shrink-0">
+                                                            <FaStar/> {product.shopEvaluationRate}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <hr className="border-neutral-800" />
                                         <div className="flex justify-between items-center">
                                             <div><p className="text-xs text-neutral-500">À partir de</p><p className="text-xl font-bold text-white">{product.price?.toFixed(2) || '...'}€</p></div>
@@ -160,17 +199,38 @@ const DashboardContent: FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
                         ))}
                     </div>
                 </AnimatedSection>
-                
+
                 <AnimatedSection className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <GlassCard><div className="bg-[#1C1E22] border border-neutral-700 w-10 h-10 flex items-center justify-center rounded-xl text-neutral-400 mb-4"><FaChartLine /></div><h3 className="font-bold text-white text-lg">Découvrir les Tendances</h3><p className="text-neutral-400 text-sm my-2">Explorez les derniers produits tendances avec les données Google Trends en temps réel.</p><button onClick={() => onNavigate('Produits tendances')} className="group mt-4 flex items-center gap-2 text-sm font-semibold text-neutral-300 hover:text-white">Voir les tendances <FaChevronRight className="transition-transform group-hover:translate-x-1"/> </button></GlassCard>
+                    <GlassCard><div className="bg-[#1C1E22] border border-neutral-700 w-10 h-10 flex items-center justify-center rounded-xl text-neutral-400 mb-4"><FaChartLine /></div><h3 className="font-bold text-white text-lg">Découvrir les Tendances</h3><p className="text-neutral-400text-sm my-2">Explorez les derniers produits tendances avec les données Google Trends en temps réel.</p><button onClick={() => onNavigate('Produits tendances')} className="group mt-4 flex items-center gap-2 text-sm font-semibold text-neutral-300 hover:text-white">Voir les tendances <FaChevronRight className="transition-transform group-hover:translate-x-1"/> </button></GlassCard>
                     <GlassCard><div className="bg-[#1C1E22] border border-neutral-700 w-10 h-10 flex items-center justify-center rounded-xl text-neutral-400 mb-4"><FaVideo /></div><h3 className="font-bold text-white text-lg">Commencer la Formation</h3><p className="text-neutral-400 text-sm my-2">Accédez aux cours vidéo d'experts pour maîtriser la création de boutique Shopify.</p><button onClick={() => onNavigate('Formations vidéo')} className="group mt-4 flex items-center gap-2 text-sm font-semibold text-neutral-300 hover:text-white">Voir les cours <FaChevronRight className="transition-transform group-hover:translate-x-1"/> </button></GlassCard>
                     <GlassCard><div className="bg-[#1C1E22] border border-neutral-700 w-10 h-10 flex items-center justify-center rounded-xl text-neutral-400 mb-4"><FaUsers /></div><h3 className="font-bold text-white text-lg">Trouver des Influenceurs</h3><p className="text-neutral-400 text-sm my-2">Connectez-vous avec des influenceurs pour amplifier vos campagnes marketing.</p><button onClick={() => onNavigate('Influenceurs')} className="group mt-4 flex items-center gap-2 text-sm font-semibold text-neutral-300 hover:text-white">Parcourir les influenceurs <FaChevronRight className="transition-transform group-hover:translate-x-1"/> </button></GlassCard>
                 </AnimatedSection>
-
+                
                 <AnimatedSection>
                     <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold text-white">Activité Récente</h2><button className="px-4 py-2 text-sm rounded-lg bg-[#1C1E22] border border-neutral-700 text-white font-semibold transition-colors hover:bg-neutral-800">Tout voir</button></div>
-                    <GlassCard padding="p-0"><ul className="divide-y divide-neutral-800">{activityData.map((activity, i) => (<li key={i} className="flex items-center gap-4 p-5"><div className="bg-[#1C1E22] border border-neutral-700 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl text-neutral-400">{activity.icon}</div><div className="flex-grow"><p className="font-semibold text-white">{activity.title}</p><p className="text-sm text-neutral-400">{activity.description}</p></div><p className="text-sm text-neutral-500 flex-shrink-0">{activity.time}</p></li>))}</ul></GlassCard>
+                    <GlassCard padding="p-0">
+                        {notificationsLoading ? (
+                             <p className="p-5 text-center text-neutral-400">Chargement de l'activité...</p>
+                        ) : !notifications || notifications.length === 0 ? (
+                            <p className="p-5 text-center text-neutral-500">Aucune activité récente à afficher.</p>
+                        ) : (
+                            <ul className="divide-y divide-neutral-800">
+                                {notifications.map((activity) => (
+                                    <li key={activity.id} className="flex items-center gap-4 p-5">
+                                        <div className="bg-[#1C1E22] border border-neutral-700 w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl text-neutral-400">
+                                            <FaBell />
+                                        </div>
+                                        <div className="flex-grow">
+                                            <p className="font-semibold text-white">{activity.message}</p>
+                                        </div>
+                                        <p className="text-sm text-neutral-500 flex-shrink-0">{timeAgo(activity.createdAt)}</p>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </GlassCard>
                 </AnimatedSection>
+
             </main>
             {selectedProduct && (
                 <ProductDetailModal product={selectedProduct} show={!!selectedProduct} onClose={() => setSelectedProduct(null)} />
@@ -183,7 +243,7 @@ const DashboardContent: FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
 const Sidebar: FC<{ activePage: string; onNavigate: (page: string) => void; isOpen: boolean; }> = ({ activePage, onNavigate, isOpen }) => {
     const { data: user } = useUserProfile();
     const { logout } = useAuth();
-    
+
     const navLinks: NavLink[] = [
         { name: 'Tableau de bord', icon: <FaTachometerAlt />, pageKey: 'Tableau de bord' },
         { name: 'Produits tendances', icon: <FaChartLine />, pageKey: 'Produits tendances' },
@@ -212,7 +272,7 @@ const Sidebar: FC<{ activePage: string; onNavigate: (page: string) => void; isOp
 // --- A generic page for features not yet built ---
 const ComingSoonPage: FC<{pageTitle: string}> = ({ pageTitle }) => (
     <main className="flex-1 flex flex-col p-6 md:p-8">
-         <div className="mb-8"><h1 className="text-4xl font-bold text-white">{pageTitle}</h1><p className="text-neutral-400 mt-1">Cette section est en cours de construction.</p></div>
+         <div className="mb-8"><h1 className="text-4xl font-bold text-white">{pageTitle}</h1><p className="text-neutral-400 mt-1">Cette sectionest en cours de construction.</p></div>
         <div className="flex-1 flex items-center justify-center"><GlassCard className="text-center"><h2 className="text-2xl font-bold text-white">Bientôt disponible</h2><p className="text-neutral-400 mt-2">Nous travaillons dur pour vous apporter cette fonctionnalité !</p></GlassCard></div>
     </main>
 );
@@ -235,7 +295,7 @@ const DashboardPage: FC = () => {
         'Paramètres': <ComingSoonPage pageTitle="Paramètres"/>,
         'Admin': <ComingSoonPage pageTitle="Admin"/>,
     };
-    
+
     return (
         <div className="min-h-screen font-sans" style={{ background: 'linear-gradient(135deg, #000000 0%, #030712 50%, #000000 100%)' }}>
             <div className="flex">

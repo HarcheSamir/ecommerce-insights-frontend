@@ -1,6 +1,6 @@
-// src/hooks/useSearchCreators.ts
+// src/hooks/useContentCreator.ts
 
-import { useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { type AxiosResponse, AxiosError } from 'axios';
 import apiClient from '../lib/apiClient';
 import type { Region } from './useRegions';
@@ -18,10 +18,8 @@ export interface Creator {
   youtube: string | null;
   bio: string | null;
   email: string | null;
-  // ... other fields from your API response
 }
 
-// Meta information for pagination
 interface Meta {
   total: number;
   page: number;
@@ -29,37 +27,39 @@ interface Meta {
   totalPages: number;
 }
 
-// CORRECTED: This now matches the API response structure { data: [], meta: {} }
 interface SearchResponse {
   data: Creator[];
   meta: Meta;
 }
 
-interface SearchParams {
+export interface SearchParams {
   keyword?: string;
-  country?: string; // This expects the country code, e.g., "AE"
-  platform?: string; // Filter by platform: 'instagram', 'youtube', 'tiktok'
-  minFollowers?: number; // Minimum follower count
-  maxFollowers?: number; // Maximum follower count
+  country?: string;
+  platform?: string;
+  minFollowers?: number;
+  maxFollowers?: number;
   page?: number;
   limit?: number;
 }
 
-export const useSearchCreators = () => {
-  return useMutation({
-    mutationFn: (params: SearchParams) =>
-      apiClient.post<SearchResponse>('/content-creators/search', params),
-    onSuccess: (data: AxiosResponse<SearchResponse>) => {
-      console.log('Search successful:', data.data);
+
+/**
+ * Hook for fetching and searching content creators.
+ * @param filters - The search, filter, and pagination parameters.
+ */
+export const useSearchCreators = (filters: SearchParams) => {
+  return useQuery({
+    queryKey: ['creators', filters],
+    queryFn: async () => {
+      const response: AxiosResponse<SearchResponse> = await apiClient.post('/content-creators/search', filters);
+      return response.data;
     },
-    onError: (error: AxiosError) => {
-      console.error('Search failed:', error);
-    },
+    placeholderData: (previousData) => previousData,
+    staleTime: 1000 * 60, // 1 minute
   });
 };
 
-// ... (useRecordVisit hook remains the same)
-
+// The useRecordVisit hook remains a mutation, which is correct for its purpose.
 export const useRecordVisit = () => {
   return useMutation({
     mutationFn: (creatorId: string) =>
@@ -71,4 +71,4 @@ export const useRecordVisit = () => {
       console.error('Failed to record visit:', error);
     },
   });
-}
+};

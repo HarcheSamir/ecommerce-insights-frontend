@@ -1,48 +1,43 @@
-import { useQuery } from '@tanstack/react-query';
-import { type AxiosError } from 'axios';
-import apiClient from '../lib/apiClient'; // Make sure this path is correct
+// src/hooks/useRegions.ts
 
-// --- Type Definition ---
+import { useQuery } from '@tanstack/react-query';
+import { type AxiosError, type AxiosResponse } from 'axios';
+import apiClient from '../lib/apiClient';
+
+// Type Definition for a single region/country
 export type Region = {
   id: string;
   name: string;
-  countryName: string;
-  flag: string; // The flag emoji
+  countryName: string | null; // <-- Correctly typed to allow null
+  flag: string | null;      // <-- Correctly typed to allow null
 };
 
-// --- Regions Query Hook ---
+// Type for the full API response from your backend
+interface RegionsResponse {
+  data: Region[];
+}
+
+// Custom hook to fetch the list of regions
 export const useRegions = () => {
-  return useQuery<{data:Region[]}, AxiosError>({
-    /**
-     * queryKey: A unique key for this query. React Query uses this for caching.
-     * The query will be automatically refetched when this key changes.
-     */
+  return useQuery<Region[], AxiosError>({
     queryKey: ['regions'],
-
-    /**
-     * queryFn: The asynchronous function that fetches the data.
-     * It must return a promise.
-     */
     queryFn: async () => {
-      // Use the apiClient to make the GET request
-      const response = await apiClient.get<{data:Region[]}>('/content-creators/regions');
-      console.log('Fetched regions:', response.data.data);
-      // The actual data from an Axios response is in the `data` property
-      return response.data;
+      const response: AxiosResponse<RegionsResponse> = await apiClient.get('/content-creators/regions');
+      
+      const regionsData = response.data.data;
+
+      // THIS IS THE FIX:
+      // We must handle the case where countryName can be null.
+      // This sort function safely handles nulls by treating them as less than any string.
+      regionsData.sort((a, b) => {
+        if (a.countryName === null) return -1;
+        if (b.countryName === null) return 1;
+        return a.countryName.localeCompare(b.countryName);
+      });
+      
+      return regionsData;
     },
-
-    // --- Optional but Recommended Configuration ---
-    /**
-     * staleTime: The time in milliseconds that data is considered "fresh".
-     * Fresh data will be served from the cache without a background refetch.
-     * 5 minutes is a good default for data that doesn't change often.
-     */
-    staleTime: 1000 * 60 * 5, // 5 minutes
-
-    /**
-     * refetchOnWindowFocus: If set to false, the query will not refetch
-     * just because the user switched tabs and came back. Useful for static data.
-     */
+    staleTime: 1000 * 60 * 60, // Cache for 1 hour
     refetchOnWindowFocus: false,
   });
 };

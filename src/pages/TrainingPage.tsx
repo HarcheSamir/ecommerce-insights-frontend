@@ -24,7 +24,7 @@ const CourseCard: FC<{ course: VideoCourse; onClick: () => void }> = ({ course, 
     return (
         <GlassCard className="flex flex-col cursor-pointer" padding="p-0">
             <div onClick={onClick}>
-                <div className="relative w-full h-48 bg-[#1C1E22] rounded-t-3xl overflow-hidden"><img src={mockData.image} alt={course.title} className="w-full h-full object-cover"/><span className="absolute top-3 left-3 text-xs px-3 py-1 rounded-full bg-black/40 text-white backdrop-blur-sm">{mockData.difficulty}</span></div>
+                <div className="relative w-full h-48 bg-[#1C1E22] rounded-t-3xl overflow-hidden"><img src={'https://digital.hec.ca/wp-content/uploads/2022/03/Shopify-store.jpeg'} alt={course.title} className="w-full h-full object-cover"/><span className="absolute top-3 left-3 text-xs px-3 py-1 rounded-full bg-black/40 text-white backdrop-blur-sm">{mockData.difficulty}</span></div>
                 <div className="p-5 flex flex-col flex-grow">
                     <div className="flex justify-between items-start mb-2"><h3 className="font-bold text-white text-lg pr-2">{course.title}</h3><div className="flex items-center gap-1 text-yellow-400 flex-shrink-0"><FaStar/> {mockData.rating}</div></div>
                     <p className="text-neutral-400 text-sm mb-4 flex-grow">{course.description || "Guide complet pour créer votre première boutique Shopify de A à Z."}</p>

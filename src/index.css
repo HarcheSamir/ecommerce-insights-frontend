@@ -125,16 +125,14 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: #111317; /* Dark background for the track */
 }
-
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #f97316, #ea580c);
+  background: #374151; /* Neutral dark gray for the thumb */
   border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #ea580c, #f97316);
+  background: #4b5563; /* Slightly lighter gray on hover */
 }
 
 /* Premium Focus States */
